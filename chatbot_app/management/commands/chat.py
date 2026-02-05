@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
+from chatterbot.trainers import ChatterBotCorpusTrainer, ListTrainer
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -36,6 +36,25 @@ class Command(BaseCommand):
             trainer = ChatterBotCorpusTrainer(bot)
             trainer.train("chatterbot.corpus.english")
 
+            self.stdout.write("Adding custom training phrases...\n")
+            list_trainer = ListTrainer(bot)
+            list_trainer.train(
+                [
+                    "hi",
+                    "Hello! How can I help you today?",
+                    "hello",
+                    "Hi there! What can I do for you?",
+                    "how are you?",
+                    "I am doing well, thanks for asking. How about you?",
+                    "i am doing fine",
+                    "Glad to hear that! What would you like to chat about?",
+                    "what is your name?",
+                    "I'm TerminalBot, your class assignment chatbot.",
+                    "thank you",
+                    "You're welcome!",
+                ]
+            )
+
         while True:
             try:
                 user_input = input("user: ").strip()
@@ -52,4 +71,7 @@ class Command(BaseCommand):
                 break
 
             response = bot.get_response(user_input)
+            if response.confidence < 0.65:
+                self.stdout.write("bot: I'm not sure how to respond to that. Can you rephrase?")
+                continue
             self.stdout.write(f"bot: {response}")
